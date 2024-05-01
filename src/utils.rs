@@ -21,3 +21,10 @@ pub fn dotted_decimal_bytes_to_string(dd: &[u8]) -> String {
         .collect::<Vec<String>>()
         .join(".");
 }
+
+pub fn dotted_decimal_string_to_bytes(dd: &str) -> Vec<u8> {
+    dd.trim()
+        .split('.')
+        .map(|byte| u8::from_str_radix(byte, 16).unwrap())
+        .collect()
+}
