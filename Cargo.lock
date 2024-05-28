@@ -248,7 +248,7 @@ dependencies = [
 
 [[package]]
 name = "profidcp"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "etherparse",
  "libc",

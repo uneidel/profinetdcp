@@ -33,12 +33,11 @@ impl Dcphandler {
             .find(|iface| iface.name == networkdevicename)
             .unwrap();
 
-        let (sender, receiver) =
-            match pnet::datalink::channel(&interface, Default::default()) {
-                Ok(Channel::Ethernet(tx, rx)) => (tx, rx),
-                Ok(_) => panic!("Unknown channel type"),
-                Err(e) => panic!("Error happened {}", e),
-            };
+        let (sender, receiver) = match pnet::datalink::channel(&interface, Default::default()) {
+            Ok(Channel::Ethernet(tx, rx)) => (tx, rx),
+            Ok(_) => panic!("Unknown channel type"),
+            Err(e) => panic!("Error happened {}", e),
+        };
 
         let mut rng = rand::thread_rng();
         let xid = rng.next_u32();
@@ -77,20 +76,20 @@ impl Dcphandler {
         return None;
     }
 
-    pub fn factory_reset(&mut self, mac : &str){
+    pub fn factory_reset(&mut self, mac: &str) {
         let (option, suboption) = constants::Option::RESET_FACTORY;
         let mut value: Vec<u8> = Vec::new();
         value.extend(constants::BlockQualifier::RESERVED);
 
-        self.send_request(mac, 
-            constants::FrameID::GET_SET, 
-            ServiceID::SET, 
-            option, 
+        self.send_request(
+            mac,
+            constants::FrameID::GET_SET,
+            ServiceID::SET,
+            option,
             suboption,
-            Some(value), 
-            constants::RESPONSE_DELAY)
-
-
+            Some(value),
+            constants::RESPONSE_DELAY,
+        )
     }
 
     pub fn identify_all(&mut self) -> Vec<Device> {
@@ -201,7 +200,7 @@ impl Dcphandler {
         valuepayload: Option<Vec<u8>>,
         response_delay: u16,
     ) {
-        let  xid = &self._xid + 1;
+        let xid = &self._xid + 1;
         let payload = match valuepayload {
             Some(val) => val,
             None => Vec::new(),
@@ -221,10 +220,10 @@ impl Dcphandler {
         let p = dcppacket.compile();
         let dcppacketpayload = p.as_slice();
 
-        let smac = mac_address_to_bytes(self.src_mac.as_str());
+        let smac = mac_address_string_to_bytes(self.src_mac.as_str());
         let sourcemac =
             pnet::datalink::MacAddr::new(smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
-        let tmac = mac_address_to_bytes(dst_mac);
+        let tmac = mac_address_string_to_bytes(dst_mac);
         let targetmac =
             pnet::datalink::MacAddr::new(tmac[0], tmac[1], tmac[2], tmac[3], tmac[4], tmac[5]);
 
@@ -278,9 +277,9 @@ impl Dcphandler {
             let ns = String::from_utf8(nameofstation).expect("Invalid UTF-8");
             device.nameofstation = ns.clone();
         } else if dcpblock.option == 1 && dcpblock.suboption == 2 {
-            device.ip = dotted_decimal_tostring(&dcpblock.payload[2..6]);
-            device.netmask = dotted_decimal_tostring(&dcpblock.payload[6..10]);
-            device.gateway = dotted_decimal_tostring(&dcpblock.payload[10..14]);
+            device.ip = dotted_decimal_bytes_to_string(&dcpblock.payload[2..6]);
+            device.netmask = dotted_decimal_bytes_to_string(&dcpblock.payload[6..10]);
+            device.gateway = dotted_decimal_bytes_to_string(&dcpblock.payload[10..14]);
         } else if dcpblock.option == 2 && dcpblock.suboption == 1 {
             let mut device_family = dcpblock.payload;
             while let Some(b'\x00') = device_family.last() {
